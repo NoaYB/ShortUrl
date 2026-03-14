@@ -1,66 +1,89 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState } from 'react';
 
 export default function Home() {
+  const [url, setUrl] = useState('');
+  const [shortUrl, setShortUrl] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setShortUrl('');
+    setCopied(false);
+
+    try {
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ originalUrl: url }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Error creating short link (check if the URL is valid)');
+      }
+
+      // Construct the new URL to display to the user
+      const fullShortUrl = `${window.location.origin}/${data.shortId}`;
+      setShortUrl(fullShortUrl);
+      setUrl('');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shortUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="container">
+      <h1>AppReel URL Shortener</h1>
+      <p className="subtitle">Enter a long URL and get a short, clean, and easy-to-share link.</p>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          type="url"
+          placeholder="https://example.com/very/long/url..."
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          required
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+        <button type="submit" disabled={loading}>
+          {loading ? 'Shortening...' : 'Shorten URL'}
+        </button>
+      </form>
+
+      {error && <div className="error">{error}</div>}
+
+      {shortUrl && (
+        <div className="success">
+          <p className="success-title">Here is your ready link!</p>
+          <div className="short-link-container">
+            <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="short-link">
+              {shortUrl}
+            </a>
+            <button
+              onClick={copyToClipboard}
+              className="copy-btn"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {copied ? '√ Copied!' : 'Copy'}
+            </button>
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }

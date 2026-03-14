@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AppReel - URL Shortener
 
-## Getting Started
+## The System
+This is a simple URL shortener project (similar to TinyURL), built as a home assignment for AppReel. The system accepts a valid long URL, generates a unique short ID for it (e.g. `http://localhost:3000/aB3dE5`), and redirects the user back to the original URL when they access the short link.
 
-First, run the development server:
+## Technology Stack
+I chose a modern, clean, and easy-to-run stack:
+- **Next.js (App Router) + TypeScript:** Serves as both the Frontend and Backend in the same project. This eliminates the need to run two different servers and configure communication between them. Everything sits in one clean place.
+- **PostgreSQL (Database):** A powerful relational database hosted in the cloud. It is fully scalable, can support an immense amount of records, and performs incredibly fast lookups due to exact indexing on the URL short-IDs.
+- **Prisma ORM:** A tool that allows communication with the database using simple and readable TypeScript code instead of writing raw SQL queries. This makes the code much shorter.
+- **Vanilla CSS:** The project is entirely styled using pure CSS (`globals.css`) for a modern look, without relying on external design libraries as requested in the assignment.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## How to run the project locally?
+The project is configured to work out of the box. All you need to do is execute the following steps in the terminal (inside the `app-reel` folder):
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Set up the Environment Variables:**
+   Create a `.env` file in the root directory (`app-reel`) and provide a connection string to a PostgreSQL database:
+   ```env
+   DATABASE_URL="postgresql://user:password@cloud-url/dbname"
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Initialize the Database:**
+   *(This pushes the schema to your PostgreSQL database and generates the Prisma Client)*
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
 
-## Learn More
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+The website will now be available at: `http://localhost:3000`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Brief Code Explanation
+- **User Interface (Frontend):** Located in `app/page.tsx`.
+- **API for creating short links:** Located in `app/api/shorten/route.ts` - Validates the URL and generates a random short ID that doesn't yet exist in the system.
+- **Redirection:** Located in `app/[shortId]/route.ts` - When a user visits a short URL, the server matches the ID, searches the database, and automatically redirects them to the original URL.
