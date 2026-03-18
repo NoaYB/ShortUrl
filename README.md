@@ -1,4 +1,4 @@
-# AppReel - URL Shortener
+# URL Shortener
 
 ## The System
 This is a simple URL shortener project (similar to TinyURL), built as a home assignment for AppReel. The system accepts a valid long URL, generates a unique short ID for it (e.g. `http://localhost:3000/aB3dE5`), and redirects the user back to the original URL when they access the short link.
